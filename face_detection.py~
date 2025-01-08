@@ -44,18 +44,19 @@ while True:
         left_hip = pose_results.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_HIP]
         right_hip = pose_results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_HIP]
 
-        print(left_hip.y)
         # Calculate the adjusted center of the chest (give more weight to shoulders)
         chest_x = (left_shoulder.x + right_shoulder.x) / 2
         chest_y = (left_shoulder.y + right_shoulder.y + left_hip.y - 0.08) / 3
 
         # Convert to pixel coordinates
         h, w, _ = img.shape
-        chest_x_px = int(chest_x * w)
-        chest_y_px = int(chest_y * h)
+        target_x_px = int(chest_x * w)
+        target_y_px = int(chest_y * h)
 
         # Draw a red dot at the center of the chest
-        cv2.circle(img, (chest_x_px, chest_y_px), 5, (0, 0, 255), -1)
+        cv2.circle(img, (target_x_px, target_y_px), 5, (0, 0, 255), -1)
+
+        print(target_x_px, target_y_px)
 
     # Display the result
     cv2.imshow('Mediapipe Pose Detection', img)

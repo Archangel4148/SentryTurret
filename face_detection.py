@@ -50,11 +50,14 @@ while True:
 
         # Convert to pixel coordinates
         h, w, _ = img.shape
-        chest_x_px = int(chest_x * w)
-        chest_y_px = int(chest_y * h)
+        target_x_px = int(chest_x * w)
+        target_y_px = int(chest_y * h)
 
         # Draw a red dot at the center of the chest
-        cv2.circle(img, (chest_x_px, chest_y_px), 5, (0, 0, 255), -1)
+        cv2.circle(img, (target_x_px, target_y_px), 5, (0, 0, 255), -1)
+
+        # Print the target position
+        print(f"Target position: ({target_x_px}, {target_y_px})")
 
     # Display the result
     cv2.imshow('Mediapipe Pose Detection', img)
