@@ -106,8 +106,6 @@ def main():
     cap.release()
     cv2.destroyAllWindows()
 
-    # Turn off the LED
-    ser.write(b'#000000\n')
     ser.close()
 
 
