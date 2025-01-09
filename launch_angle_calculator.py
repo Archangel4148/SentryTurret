@@ -89,9 +89,11 @@ def find_servo_tilt_angle(x_distance: float, y_distance: float, initial_velocity
 
     # Find the two solutions for the angle
     angle_1 = math.degrees(
-        math.atan(x_distance + math.sqrt(discriminant)) / ((g * x_distance ** 2) / (initial_velocity ** 2)))
+        math.atan((x_distance + math.sqrt(discriminant)) / ((g * x_distance ** 2) / (initial_velocity ** 2)))
+    )
     angle_2 = math.degrees(
-        math.atan(x_distance - math.sqrt(discriminant)) / ((g * x_distance ** 2) / (initial_velocity ** 2)))
+        math.atan((x_distance - math.sqrt(discriminant)) / ((g * x_distance ** 2) / (initial_velocity ** 2)))
+    )
 
     # Round the values to be handled by the servo
     actual_angle = min(angle_1, angle_2)
