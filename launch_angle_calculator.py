@@ -61,7 +61,7 @@ def find_servo_pan_angle(x_distance: float, camera_distance: float, camera_pan_a
     :return: The pan angle from the gun to the target point
     """
 
-    pan_angle = math.asin(math.radians(camera_distance / x_distance * math.sin(math.radians(camera_pan_angle))))
+    pan_angle = math.degrees(math.asin(camera_distance / x_distance * math.sin(math.radians(camera_pan_angle))))
 
     # Round the angle to be handled by the servo
     servo_pan_angle = int(round(pan_angle))
@@ -104,9 +104,9 @@ def find_servo_tilt_angle(x_distance: float, y_distance: float, initial_velocity
 
 if __name__ == '__main__':
     # Run sample calculations for a scenario
-    camera_spacing = 1
-    theta, phi = 15, 15
-    tilt_angle = 24
+    camera_spacing = 1.5
+    theta, phi = 34, 50
+    tilt_angle = 10
     initial_velocity = 22
 
     # Find camera distance to target
