@@ -3,9 +3,18 @@ import mediapipe as mp
 import numpy as np
 import serial
 
+from launch_angle_calculator_optimized import find_camera_distance, find_distance_x, find_distance_y, \
+    find_servo_pan_angle, find_servo_tilt_angle
+
 # Constants for camera's angular FOVs
-HORIZONTAL_FOV = 85.99  # Horizontal FoV in degrees (calculated earlier)
-VERTICAL_FOV = 70.09  # Vertical FoV in degrees (calculated earlier)
+HORIZONTAL_FOV = (85.99, 70.43)  # Horizontal FoV in degrees (calculated earlier)
+VERTICAL_FOV = (70.09, 43.31)  # Vertical FoV in degrees (calculated earlier)
+CAM_1 = 1
+CAM_2 = 2
+
+# Setup parameters
+CAMERA_SPACING = 0.23
+LAUNCH_VELOCITY = 22
 
 # Video feed settings
 SHOW_CAMERA_FEED = False
@@ -27,21 +36,23 @@ def send_serial_data(serial, target_x_px, target_y_px, screen_width):
     serial.write((hex_color + '\n').encode())
 
 
-def calculate_camera_angle(target_x_px, target_y_px, w, h):
+def calculate_camera_angle(target_x_px, target_y_px, w, h, hfov, vfov):
     # Normalize the pixel positions
     x_norm = target_x_px / w
-    y_norm = target_y_px / h
+    y_norm = 1 - target_y_px / h
 
     # Calculate the pan (horizontal) angle using the horizontal FOV
-    pan_angle = (x_norm - 0.5) * HORIZONTAL_FOV
+    hidden_angle = 0.5 * (180 - hfov)
+    pan_angle = hidden_angle + (x_norm * hfov)
 
     # Calculate the tilt (vertical) angle using the vertical FOV
-    tilt_angle = (y_norm - 0.5) * VERTICAL_FOV
+    hidden_angle = 0.5 * (180 - vfov)
+    tilt_angle = hidden_angle + (y_norm * vfov)
 
     return pan_angle, tilt_angle
 
 
-def process_frame(frame, pose, mp_drawing, mp_pose, serial=None):
+def process_frame(frame, pose, mp_drawing, mp_pose, hfov, vfov, serial=None):
     """Processes a single frame, performs pose detection, and calculates angles."""
     # Convert the image to RGB and process it
     rgb_img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -97,7 +108,7 @@ def process_frame(frame, pose, mp_drawing, mp_pose, serial=None):
         cv2.circle(result_image, (target_x_px, target_y_px), 5, (0, 0, 255), -1)
 
     # Calculate the servo angles
-    pan_angle, tilt_angle = calculate_camera_angle(target_x_px, target_y_px, w, h)
+    pan_angle, tilt_angle = calculate_camera_angle(target_x_px, target_y_px, w, h, hfov, vfov)
 
     # Send data to Arduino
     if SERIAL_ENABLE and serial is not None:
@@ -123,8 +134,12 @@ def main():
     pose = mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
 
     # Initialize webcams based on mode
-    cap1 = cv2.VideoCapture(0)  # First webcam
-    cap2 = cv2.VideoCapture(1) if STEREOSCOPIC_MODE else None  # Second webcam if stereoscopic mode is enabled
+    cap1 = cv2.VideoCapture(CAM_1)  # First webcam
+    cap2 = cv2.VideoCapture(CAM_2) if STEREOSCOPIC_MODE else None  # Second webcam if stereoscopic mode is enabled
+
+    cap1.set(cv2.CAP_PROP_FPS, 30)
+    if STEREOSCOPIC_MODE:
+        cap2.set(cv2.CAP_PROP_FPS, 30)
 
     if not cap1.isOpened():
         print("Error: Cannot open webcam 0.")
@@ -142,7 +157,8 @@ def main():
                 break
 
             # Process frames from the first webcam
-            result_image1, pan_angle1, tilt_angle1 = process_frame(img1, pose, mp_drawing, mp_pose, ser)
+            result_image1, pan_angle1, tilt_angle1 = process_frame(img1, pose, mp_drawing, mp_pose, HORIZONTAL_FOV[0],
+                                                                   VERTICAL_FOV[0], ser)
 
             print(f"Webcam 0 -> Pan: {pan_angle1}°, Tilt: {tilt_angle1}°")
             cv2.imshow('Webcam 0 Pose Detection', result_image1)
@@ -155,9 +171,28 @@ def main():
                     break
 
                 # Process frames from the second webcam
-                result_image2, pan_angle2, tilt_angle2 = process_frame(img2, pose, mp_drawing, mp_pose, ser)
-                print(f"Webcam 1 -> Pan: {pan_angle2}°, Tilt: {tilt_angle2}°")
+                result_image2, pan_angle2, tilt_angle2 = process_frame(img2, pose, mp_drawing, mp_pose,
+                                                                       HORIZONTAL_FOV[1], VERTICAL_FOV[1], ser)
+                # print(f"Webcam 1 -> Pan: {pan_angle2}°, Tilt: {tilt_angle2}°\n")
                 cv2.imshow('Webcam 1 Pose Detection', result_image2)
+
+                # Process frames from both webcams
+                if pan_angle1 is not None and pan_angle2 is not None and tilt_angle1 is not None and tilt_angle2 is not None:
+                    print("Angles:", pan_angle1, pan_angle2, tilt_angle1, tilt_angle2)
+
+                    camera_distance = find_camera_distance(CAMERA_SPACING, abs(pan_angle1), abs(pan_angle2))
+                    distance_x = find_distance_x(CAMERA_SPACING, camera_distance, abs(pan_angle2))
+                    distance_y = find_distance_y(camera_distance, tilt_angle1)
+
+                    servo_pan_angle, actual_pan_angle = find_servo_pan_angle(distance_x, camera_distance, pan_angle2)
+                    servo_tilt_angle, actual_tilt_angle = find_servo_tilt_angle(distance_x, distance_y, LAUNCH_VELOCITY)
+
+                    print(f"Camera Distance: {camera_distance:.3f}m")
+                    # print(f"Gun Distance - X: {distance_x:.3f}m, Y: {distance_y:.3f}m")
+                    # print(f"Actual Pan Angle: {actual_pan_angle:.3f}°")
+                    # print(f"Servo Pan Angle: {servo_pan_angle}°")
+                    # print(f"Actual Tilt Angle: {actual_tilt_angle:.3f}°")
+                    # print(f"Servo Tilt Angle: {servo_tilt_angle}°")
 
             # Stop on Esc or if windows are closed
             k = cv2.waitKey(30) & 0xff
