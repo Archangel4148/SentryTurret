@@ -1,9 +1,13 @@
 import time
-
 import cv2
 import mediapipe as mp
 import numpy as np
 import serial
+import math
+
+# Constants for camera's angular FOVs
+HORIZONTAL_FOV = 100.1  # Horizontal FoV in degrees (calculated earlier)
+VERTICAL_FOV = 74.8  # Vertical FoV in degrees (calculated earlier)
 
 # Video feed settings
 SHOW_CAMERA_FEED = False
@@ -11,7 +15,7 @@ DRAW_POSE_LANDMARKS = True
 DRAW_TARGET_POINT = True
 
 # Serial settings
-SERIAL_ENABLE = True
+SERIAL_ENABLE = False
 SEND_INTERVAL = 0.01  # Time to wait before sending the next target position (in seconds)
 
 
@@ -22,6 +26,25 @@ def send_target_position(serial, target_x_px, target_y_px, screen_width):
 
     # Send the hex color to the Arduino
     serial.write((hex_color + '\n').encode())
+
+
+def calculate_servo_angles(target_x_px, target_y_px, w, h):
+    # Normalize the pixel positions
+    x_norm = target_x_px / w
+    y_norm = target_y_px / h
+
+    # Calculate the pan (horizontal) angle using the horizontal FOV
+    pan_angle = (x_norm - 0.5) * HORIZONTAL_FOV  # Shifting the normalized x to [-0.5, 0.5] then multiply by the FoV
+
+    # Calculate the tilt (vertical) angle using the vertical FOV
+    tilt_angle = (y_norm - 0.5) * VERTICAL_FOV  # Shifting the normalized y to [-0.5, 0.5] then multiply by the FoV
+
+    # Convert the angles to integer values for the servos
+    pan_angle_int = int(round(pan_angle))
+    tilt_angle_int = int(round(tilt_angle))
+
+    return pan_angle_int, tilt_angle_int
+
 
 
 def main():
@@ -108,6 +131,10 @@ def main():
             if DRAW_TARGET_POINT:
                 # Draw a red dot at the target position
                 cv2.circle(result_image, (target_x_px, target_y_px), 5, (0, 0, 255), -1)
+
+            # Calculate the servo angles
+            pan_angle, tilt_angle = calculate_servo_angles(target_x_px, target_y_px, w, h)
+            print(f"Pan Angle: {pan_angle}°, Tilt Angle: {tilt_angle}°")
 
             if SERIAL_ENABLE:
                 # Update timer
