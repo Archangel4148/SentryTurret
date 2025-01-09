@@ -6,8 +6,8 @@ import serial
 import math
 
 # Constants for camera's angular FOVs
-HORIZONTAL_FOV = 100.1  # Horizontal FoV in degrees (calculated earlier)
-VERTICAL_FOV = 74.8  # Vertical FoV in degrees (calculated earlier)
+HORIZONTAL_FOV = 85.99  # Horizontal FoV in degrees (calculated earlier)
+VERTICAL_FOV = 70.09  # Vertical FoV in degrees (calculated earlier)
 
 # Video feed settings
 SHOW_CAMERA_FEED = False

@@ -52,7 +52,7 @@ def find_distance_y(camera_distance: float, camera_tilt_angle: float) -> float:
     return y_distance
 
 
-def find_servo_pan_angle(x_distance: float, camera_distance: float, camera_pan_angle: float) -> int:
+def find_servo_pan_angle(x_distance: float, camera_distance: float, camera_pan_angle: float) -> tuple[int, float]:
     """
     Finds the required pan angle from the gun to the target point
     :param x_distance: The horizontal distance from the gun to the target point
@@ -69,7 +69,8 @@ def find_servo_pan_angle(x_distance: float, camera_distance: float, camera_pan_a
     return servo_pan_angle, pan_angle
 
 
-def find_servo_tilt_angle(x_distance: float, y_distance: float, initial_velocity: float, g: float = 9.8) -> int:
+def find_servo_tilt_angle(x_distance: float, y_distance: float, initial_velocity: float, g: float = 9.8) -> tuple[
+    int, str | float]:
     """
     Finds the required tilt angle from the gun to the target point
     :param x_distance: The horizontal distance from the gun to the target point
@@ -85,7 +86,7 @@ def find_servo_tilt_angle(x_distance: float, y_distance: float, initial_velocity
 
     # If the target is out of range, return to default position
     if discriminant < 0:
-        return DEFAULT_TILT_POSITION
+        return DEFAULT_TILT_POSITION, "Out of Range"
 
     # Find the two solutions for the angle
     angle_1 = math.degrees(
