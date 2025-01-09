@@ -26,16 +26,16 @@ def calculate_laser_angle(x, y):
 
 
 # Required inputs
-x = 4  # Horizontal distance to the target (m)
-y = 1  # Height difference to the target (m)
-v0 = 21  # Launch velocity (m/s)
+x = float(input("Enter the horizontal distance to the target (m): "))
+y = float(input("Enter the height difference to the target (m): "))
+v0 = float(input("Enter the launch velocity (m/s): "))
 
 angles = calculate_launch_angle(x, y, v0)
 laser_angle = calculate_laser_angle(x, y)
 
 if angles:
-    print(f"Possible launch angles: {angles[0]:.2f} degrees and {angles[1]:.2f} degrees")
+    print(f"\nPossible launch angles: {angles[0]:.2f} degrees and {angles[1]:.2f} degrees")
 else:
-    print("The target is unreachable with the given initial velocity.")
+    print("\nThe target is unreachable with the given initial velocity.")
 
 print(f"Laser angle: {laser_angle:.2f} degrees")
