@@ -8,6 +8,7 @@ DEFAULT_TILT_POSITION = 0
 #  - Camera Spacing (From gun to camera)
 #  - Horizontal angles (theta + phi)
 #  - One of the vertical angles (psi)
+#  - Initial launch velocity (m/s)
 # ======================================
 
 def find_camera_distance(camera_spacing: float, angle_a: float, angle_b: float) -> float:
@@ -18,7 +19,9 @@ def find_camera_distance(camera_spacing: float, angle_a: float, angle_b: float) 
     :param angle_b: The horizontal angle from arbitrary camera B to the target
     :return: The horizontal distance from camera A to the target
     """
-    camera_distance = 2 * camera_spacing * (math.sin(angle_a) / math.sin(180 - angle_a - angle_b))
+
+    camera_distance = 2 * camera_spacing * (
+            math.sin(math.radians(angle_a)) / math.sin(math.radians(180 - angle_a - angle_b)))
     return camera_distance
 
 
@@ -32,7 +35,8 @@ def find_distance_x(camera_spacing: float, camera_distance: float, camera_pan_an
     """
 
     x_distance = math.sqrt(
-        camera_spacing ** 2 + camera_distance ** 2 - 2 * camera_spacing * camera_distance * math.cos(camera_pan_angle))
+        camera_spacing ** 2 + camera_distance ** 2 - 2 * camera_spacing * camera_distance * math.cos(
+            math.radians(camera_pan_angle)))
     return x_distance
 
 
@@ -43,7 +47,7 @@ def find_distance_y(camera_distance: float, camera_tilt_angle: float) -> float:
     :param camera_tilt_angle: The vertical angle from the reference camera to the target point
     :return: The vertical distance from the gun to the target
     """
-    y_distance = camera_distance * math.tan(camera_tilt_angle)
+    y_distance = camera_distance * math.tan(math.radians(camera_tilt_angle))
 
     return y_distance
 
@@ -57,12 +61,12 @@ def find_servo_pan_angle(x_distance: float, camera_distance: float, camera_pan_a
     :return: The pan angle from the gun to the target point
     """
 
-    pan_angle = math.asin(camera_distance / x_distance * math.sin(camera_pan_angle))
+    pan_angle = math.asin(math.radians(camera_distance / x_distance * math.sin(math.radians(camera_pan_angle))))
 
     # Round the angle to be handled by the servo
     servo_pan_angle = int(round(pan_angle))
 
-    return servo_pan_angle
+    return servo_pan_angle, pan_angle
 
 
 def find_servo_tilt_angle(x_distance: float, y_distance: float, initial_velocity: float, g: float = 9.8) -> int:
@@ -84,10 +88,37 @@ def find_servo_tilt_angle(x_distance: float, y_distance: float, initial_velocity
         return DEFAULT_TILT_POSITION
 
     # Find the two solutions for the angle
-    angle_1 = (x_distance + math.sqrt(discriminant)) / ((g * x ** 2) / (initial_velocity ** 2))
-    angle_2 = (x_distance - math.sqrt(discriminant)) / ((g * x ** 2) / (initial_velocity ** 2))
+    angle_1 = math.degrees(
+        math.atan(x_distance + math.sqrt(discriminant)) / ((g * x_distance ** 2) / (initial_velocity ** 2)))
+    angle_2 = math.degrees(
+        math.atan(x_distance - math.sqrt(discriminant)) / ((g * x_distance ** 2) / (initial_velocity ** 2)))
 
     # Round the values to be handled by the servo
-    servo_angle = int(round(min(angle_1, angle_2)))
+    actual_angle = min(angle_1, angle_2)
+    servo_angle = int(round(actual_angle))
 
-    return servo_angle
+    return servo_angle, actual_angle
+
+
+if __name__ == '__main__':
+    # Run sample calculations for a scenario
+    camera_spacing = 1
+    theta, phi = 15, 15
+    tilt_angle = 24
+    initial_velocity = 22
+
+    # Find camera distance to target
+    camera_distance = find_camera_distance(camera_spacing, theta, phi)
+    print(f"Camera Distance: {camera_distance}\n")
+
+    # Find distances from gun to target
+    distance_x = find_distance_x(camera_spacing, camera_distance, phi)
+    distance_y = find_distance_y(camera_distance, tilt_angle)
+    print(f"Gun Distance:\n - X: {distance_x}\n - Y: {distance_y}\n")
+
+    # Find gun pan/tilt angles
+    servo_pan_angle, actual_pan_angle = find_servo_pan_angle(distance_x, camera_distance, phi)
+    servo_tilt_angle, actual_tilt_angle = find_servo_tilt_angle(distance_x, distance_y, initial_velocity)
+
+    print(f"Actual Pan Angle: {actual_pan_angle}°\nActual Tilt Angle: {actual_tilt_angle}°")
+    print(f"Servo Pan Angle: {servo_pan_angle}°\nServo Tilt Angle: {servo_tilt_angle}°")
