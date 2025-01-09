@@ -11,6 +11,7 @@ VERTICAL_FOV = 70.09  # Vertical FoV in degrees (calculated earlier)
 SHOW_CAMERA_FEED = False
 DRAW_POSE_LANDMARKS = True
 DRAW_TARGET_POINT = True
+STEREOSCOPIC_MODE = False  # Set to True for two cameras, False for one camera
 
 # Serial settings
 SERIAL_ENABLE = False
@@ -121,53 +122,52 @@ def main():
     mp_drawing = mp.solutions.drawing_utils
     pose = mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
 
-    # Initialize webcams
+    # Initialize webcams based on mode
     cap1 = cv2.VideoCapture(0)  # First webcam
-    cap2 = cv2.VideoCapture(1)  # Second webcam
+    cap2 = cv2.VideoCapture(1) if STEREOSCOPIC_MODE else None  # Second webcam if stereoscopic mode is enabled
 
     if not cap1.isOpened():
         print("Error: Cannot open webcam 0.")
         exit(1)
-    if not cap2.isOpened():
+    if STEREOSCOPIC_MODE and (cap2 is None or not cap2.isOpened()):
         print("Error: Cannot open webcam 1.")
         exit(1)
 
-    print(f"Webcam 0 FPS: {cap1.get(cv2.CAP_PROP_FPS)}")
-    print(f"Webcam 1 FPS: {cap2.get(cv2.CAP_PROP_FPS)}")
-
     try:
         while True:
-            # Read frames from both webcams
+            # Read frames from the first webcam
             ret1, img1 = cap1.read()
-            ret2, img2 = cap2.read()
-
             if not ret1 or img1 is None:
                 print("Error reading frame from webcam 0.")
                 break
-            if not ret2 or img2 is None:
-                print("Error reading frame from webcam 1.")
-                break
 
-            # Process frames from both webcams
+            # Process frames from the first webcam
             result_image1, pan_angle1, tilt_angle1 = process_frame(img1, pose, mp_drawing, mp_pose, ser)
-            result_image2, pan_angle2, tilt_angle2 = process_frame(img2, pose, mp_drawing, mp_pose, ser)
 
             print(f"Webcam 0 -> Pan: {pan_angle1}°, Tilt: {tilt_angle1}°")
-            print(f"Webcam 1 -> Pan: {pan_angle2}°, Tilt: {tilt_angle2}°")
-
-            # Display both webcam feeds
             cv2.imshow('Webcam 0 Pose Detection', result_image1)
-            cv2.imshow('Webcam 1 Pose Detection', result_image2)
 
-            # Stop on Esc or if window is closed
+            if STEREOSCOPIC_MODE:
+                # Read frames from the second webcam
+                ret2, img2 = cap2.read()
+                if not ret2 or img2 is None:
+                    print("Error reading frame from webcam 1.")
+                    break
+
+                # Process frames from the second webcam
+                result_image2, pan_angle2, tilt_angle2 = process_frame(img2, pose, mp_drawing, mp_pose, ser)
+                print(f"Webcam 1 -> Pan: {pan_angle2}°, Tilt: {tilt_angle2}°")
+                cv2.imshow('Webcam 1 Pose Detection', result_image2)
+
+            # Stop on Esc or if windows are closed
             k = cv2.waitKey(30) & 0xff
             if k == 27 or cv2.getWindowProperty('Webcam 0 Pose Detection', cv2.WND_PROP_VISIBLE) < 1 or \
-                    cv2.getWindowProperty('Webcam 1 Pose Detection', cv2.WND_PROP_VISIBLE) < 1:
+                    (STEREOSCOPIC_MODE and cv2.getWindowProperty('Webcam 1 Pose Detection', cv2.WND_PROP_VISIBLE) < 1):
                 break
     finally:
-        # Release resources
         cap1.release()
-        cap2.release()
+        if STEREOSCOPIC_MODE and cap2:
+            cap2.release()
         cv2.destroyAllWindows()
 
         if SERIAL_ENABLE and ser is not None:
