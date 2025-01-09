@@ -11,7 +11,7 @@ DRAW_POSE_LANDMARKS = True
 DRAW_TARGET_POINT = True
 
 # Serial settings
-SERIAL_ENABLE = False
+SERIAL_ENABLE = True
 SEND_INTERVAL = 0.01  # Time to wait before sending the next target position (in seconds)
 
 
