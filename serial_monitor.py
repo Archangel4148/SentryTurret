@@ -1,18 +1,17 @@
-import serial
 import time
 
-# Set up the serial connection (adjust COM port as needed)
+import serial
+
+# Set up the serial connection
 ser = serial.Serial('COM7', 115200, timeout=0)
 
-# Wait for Arduino reset (if needed)
+# Wait for Arduino to reset
 time.sleep(2)
 
-print("Enter hex color code to send to Arduino (type 'exit' to quit):")
+print("Enter serial command to send to Arduino (send an empty string to quit):")
 
 while True:
-    # Get user input (hex color)
     command = input("Send: ")
-
     if command == "":
         break
 
