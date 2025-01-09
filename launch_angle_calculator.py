@@ -2,18 +2,6 @@ import math
 
 
 def calculate_launch_angle(x, y, v0):
-    """
-    Calculate the launch angles to hit a target at a given distance and height.
-
-    Parameters:
-        x (float): Horizontal distance to the target (m).
-        y (float): Height difference to the target (m).
-        v0 (float): Initial velocity of the projectile (m/s).
-
-    Returns:
-        tuple: A tuple of possible launch angles in degrees (lower angle, higher angle).
-               Returns None if the target is unreachable.
-    """
     g = 9.8  # Acceleration due to gravity (m/s^2)
 
     # Compute the discriminant of the quadratic equation
@@ -22,7 +10,7 @@ def calculate_launch_angle(x, y, v0):
     if discriminant < 0:
         return None  # Target is unreachable
 
-    # Calculate the two possible angles (in radians)
+    # Calculate the two possible angles
     angle1 = math.atan((v0 ** 2 + math.sqrt(discriminant)) / (g * x))
     angle2 = math.atan((v0 ** 2 - math.sqrt(discriminant)) / (g * x))
 
@@ -34,23 +22,13 @@ def calculate_launch_angle(x, y, v0):
 
 
 def calculate_laser_angle(x, y):
-    """
-    Calculate the angle for a laser to hit the target directly.
-
-    Parameters:
-        x (float): Horizontal distance to the target (m).
-        y (float): Height difference to the target (m).
-
-    Returns:
-        float: The angle in degrees for a direct laser shot.
-    """
     return math.degrees(math.atan2(y, x))
 
 
-# Example usage
+# Required inputs
 x = 4  # Horizontal distance to the target (m)
 y = 1  # Height difference to the target (m)
-v0 = 21  # Initial velocity (m/s)
+v0 = 21  # Launch velocity (m/s)
 
 angles = calculate_launch_angle(x, y, v0)
 laser_angle = calculate_laser_angle(x, y)
