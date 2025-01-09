@@ -121,34 +121,53 @@ def main():
     mp_drawing = mp.solutions.drawing_utils
     pose = mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
 
-    # Initialize webcam
-    cap = cv2.VideoCapture(0)
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    print(f"Frames per second: {fps}")
-    if not cap.isOpened():
-        print("Error: Cannot open webcam.")
+    # Initialize webcams
+    cap1 = cv2.VideoCapture(0)  # First webcam
+    cap2 = cv2.VideoCapture(1)  # Second webcam
+
+    if not cap1.isOpened():
+        print("Error: Cannot open webcam 0.")
         exit(1)
+    if not cap2.isOpened():
+        print("Error: Cannot open webcam 1.")
+        exit(1)
+
+    print(f"Webcam 0 FPS: {cap1.get(cv2.CAP_PROP_FPS)}")
+    print(f"Webcam 1 FPS: {cap2.get(cv2.CAP_PROP_FPS)}")
 
     try:
         while True:
-            ret, img = cap.read()
-            if not ret or img is None:
-                print("Error reading frame from webcam.")
+            # Read frames from both webcams
+            ret1, img1 = cap1.read()
+            ret2, img2 = cap2.read()
+
+            if not ret1 or img1 is None:
+                print("Error reading frame from webcam 0.")
+                break
+            if not ret2 or img2 is None:
+                print("Error reading frame from webcam 1.")
                 break
 
-            result_image, pan_angle, tilt_angle = process_frame(img, pose, mp_drawing, mp_pose, ser)
+            # Process frames from both webcams
+            result_image1, pan_angle1, tilt_angle1 = process_frame(img1, pose, mp_drawing, mp_pose, ser)
+            result_image2, pan_angle2, tilt_angle2 = process_frame(img2, pose, mp_drawing, mp_pose, ser)
 
-            print(f"Pan Angle: {pan_angle}°, Tilt Angle: {tilt_angle}°")
+            print(f"Webcam 0 -> Pan: {pan_angle1}°, Tilt: {tilt_angle1}°")
+            print(f"Webcam 1 -> Pan: {pan_angle2}°, Tilt: {tilt_angle2}°")
 
-            # Display the image
-            cv2.imshow('Mediapipe Pose Detection', result_image)
+            # Display both webcam feeds
+            cv2.imshow('Webcam 0 Pose Detection', result_image1)
+            cv2.imshow('Webcam 1 Pose Detection', result_image2)
 
             # Stop on Esc or if window is closed
             k = cv2.waitKey(30) & 0xff
-            if k == 27 or cv2.getWindowProperty('Mediapipe Pose Detection', cv2.WND_PROP_VISIBLE) < 1:
+            if k == 27 or cv2.getWindowProperty('Webcam 0 Pose Detection', cv2.WND_PROP_VISIBLE) < 1 or \
+                    cv2.getWindowProperty('Webcam 1 Pose Detection', cv2.WND_PROP_VISIBLE) < 1:
                 break
     finally:
-        cap.release()
+        # Release resources
+        cap1.release()
+        cap2.release()
         cv2.destroyAllWindows()
 
         if SERIAL_ENABLE and ser is not None:
