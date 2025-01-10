@@ -25,7 +25,7 @@ def find_distance_x(camera_spacing: float, camera_distance: float, camera_pan_an
 
 def find_distance_y(camera_distance: float, camera_tilt_angle: float) -> float:
     """Calculate vertical distance from the gun to the target."""
-    return camera_distance * math.tan(math.radians(camera_tilt_angle))
+    return camera_distance * math.tan(math.radians(camera_tilt_angle - 90))
 
 
 def find_servo_pan_angle(x_distance: float, camera_distance: float, camera_pan_angle: float) -> tuple[int, float]:

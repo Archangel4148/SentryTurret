@@ -7,20 +7,20 @@ from launch_angle_calculator_optimized import find_camera_distance, find_distanc
     find_servo_pan_angle, find_servo_tilt_angle
 
 # Constants for camera's angular FOVs
-HORIZONTAL_FOV = (85.99, 70.43)  # Horizontal FoV in degrees (calculated earlier)
-VERTICAL_FOV = (70.09, 43.31)  # Vertical FoV in degrees (calculated earlier)
+HORIZONTAL_FOV = (82.1, 70.42)  # Horizontal FoV in degrees (calculated earlier)
+VERTICAL_FOV = (52.2, 43.30)  # Vertical FoV in degrees (calculated earlier)
 CAM_1 = 1
 CAM_2 = 2
 
 # Setup parameters
-CAMERA_SPACING = 0.23
+CAMERA_SPACING = 0.235
 LAUNCH_VELOCITY = 22
 
 # Video feed settings
 SHOW_CAMERA_FEED = False
 DRAW_POSE_LANDMARKS = True
 DRAW_TARGET_POINT = True
-STEREOSCOPIC_MODE = False  # Set to True for two cameras, False for one camera
+STEREOSCOPIC_MODE = True  # Set to True for two cameras, False for one camera
 
 # Serial settings
 SERIAL_ENABLE = False
@@ -162,7 +162,7 @@ def main():
             result_image1, pan_angle1, tilt_angle1 = process_frame(img1, pose, mp_drawing, mp_pose, HORIZONTAL_FOV[0],
                                                                    VERTICAL_FOV[0], ser)
 
-            print(f"Webcam 0 -> Pan: {pan_angle1}°, Tilt: {tilt_angle1}°")
+            # print(f"Webcam 0 -> Pan: {pan_angle1}°, Tilt: {tilt_angle1}°")
             cv2.imshow('Webcam 0 Pose Detection', result_image1)
 
             if STEREOSCOPIC_MODE:
