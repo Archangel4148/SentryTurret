@@ -3,7 +3,7 @@ import mediapipe as mp
 import numpy as np
 import serial
 
-from launch_angle_calculator_optimized import find_camera_distance, find_distance_x, find_distance_y, \
+from launch_angle_calculator import find_camera_distance, find_distance_x, find_distance_y, \
     find_servo_pan_angle, find_servo_tilt_angle
 
 # Constants for camera's angular FOVs

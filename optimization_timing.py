@@ -9,7 +9,7 @@ from launch_angle_calculator import (
     find_servo_tilt_angle as original_find_servo_tilt_angle,
 )
 # Optimized functions (import or define them with prefix "optimized_")
-from launch_angle_calculator_optimized import (
+from launch_angle_calculator import (
     find_camera_distance as optimized_find_camera_distance,
     find_distance_x as optimized_find_distance_x,
     find_distance_y as optimized_find_distance_y,
