@@ -26,14 +26,16 @@ def find_distance_x(camera_to_gun_dist: float, camera_distance_x: float, camera_
 
 def find_distance_y(camera_distance_x: float, camera_tilt_angle: float) -> float:
     """Calculate vertical distance from the gun to the target."""
-    return camera_distance_x * math.tan(math.radians(camera_tilt_angle - 90))
+    return camera_distance_x * math.tan(math.radians(camera_tilt_angle))
 
 
 def find_servo_pan_angle(x_distance: float, camera_distance_x: float, camera_pan_angle: float) -> tuple[int, float]:
     """Calculate required pan angle for the servo."""
     pan_angle_rad = math.radians(camera_pan_angle)
     sin_pan = math.sin(pan_angle_rad)
-    pan_angle = math.degrees(math.asin((camera_distance_x / x_distance) * sin_pan))
+    ratio = (camera_distance_x / x_distance) * sin_pan
+    clamped_ratio = max(-1, min(1, ratio))
+    pan_angle = math.degrees(math.asin(clamped_ratio))
     return int(round(pan_angle)), pan_angle
 
 
@@ -66,8 +68,8 @@ def find_servo_tilt_angle(
 
 if __name__ == '__main__':
     camera_spacing = 1.5
-    theta, phi = 34, 50
-    tilt_angle = 10
+    theta, phi = 33, 75
+    tilt_angle = 40
     initial_velocity = 22
 
     camera_distance = find_camera_distance(camera_spacing, theta, phi)
@@ -83,7 +85,8 @@ if __name__ == '__main__':
     print(f"Gun Distance - X: {distance_x:.3f}m, Y: {distance_y:.3f}m")
     print(f"Actual Pan Angle: {actual_pan_angle:.3f}°")
     print(f"Servo Pan Angle: {servo_pan_angle}°")
-    print(f"Actual Tilt Angle: {actual_tilt_angle:.3f}°")
+    print(f"Actual Tilt Angle: {actual_tilt_angle:.3f}°" if isinstance(actual_tilt_angle,
+                                                                       float) else f"Actual Tilt Angle: {actual_tilt_angle}")
     print(f"Servo Tilt Angle: {servo_tilt_angle}°")
     print(f"Actual Tilt Angle (Laser): {actual_laser_tilt_angle:.3f}°")
     print(f"Servo Tilt Angle (Laser): {laser_servo_tilt_angle}°")
