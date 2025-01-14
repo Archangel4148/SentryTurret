@@ -41,7 +41,7 @@ def find_servo_pan_angle(x_distance: float, camera_distance_x: float, camera_pan
 
 def find_servo_tilt_angle(
         x_distance: float, y_distance: float, launch_velocity: float, use_laser: bool = False, g: float = 9.8
-) -> tuple[int, str | float]:
+) -> tuple[float, str | float]:
     """Calculate required tilt angle for the servo."""
     if x_distance <= 0:
         return DEFAULT_TILT_POSITION, "Out of Range"
@@ -63,7 +63,7 @@ def find_servo_tilt_angle(
     angle_2 = math.degrees(math.atan((x_distance - sqrt_discriminant) / (g_x_squared / v_squared)))
 
     actual_angle = min(angle_1, angle_2)
-    return int(round(actual_angle)), actual_angle
+    return round(actual_angle, 1), actual_angle
 
 
 if __name__ == '__main__':
