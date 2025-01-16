@@ -27,13 +27,12 @@ SERIAL_ENABLE = False
 SEND_INTERVAL = 1 / 30  # Time to wait before sending the next target position (in seconds)
 
 
-def send_serial_data(serial, target_x_px, target_y_px, screen_width):
-    red_value = int(255 * (1 - (target_x_px / screen_width)))  # Increase red left
-    blue_value = int(255 * (target_x_px / screen_width))  # Increase blue right
-    hex_color = f"#{red_value:02x}00{blue_value:02x}"
+def send_serial_data(serial, servo_index_1, servo_angle_1, servo_index_2, servo_angle_2):
+    # Create a string to represent the servo indexes and angles
+    data = f"{servo_index_1},{servo_angle_1},{servo_index_2},{servo_angle_2}\n"
 
-    # Send the hex color to the Arduino
-    serial.write((hex_color + '\n').encode())
+    # Send the data to the Arduino
+    serial.write(data.encode())
 
 
 def calculate_camera_angle(target_x_px, target_y_px, w, h, hfov, vfov, invert_x=False):
